@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use verneuil::chain_error;
-use verneuil::fresh_error;
 use verneuil::Options;
 use verneuil::Result;
+use verneuil::chain_error;
+use verneuil::fresh_error;
 
 #[derive(Debug, Parser)]
 #[clap(
@@ -278,7 +278,7 @@ fn sync(cmd: Sync, config: Options) -> Result<()> {
             return Err(fresh_error!(
                 "Replication must be enabled (replication_spooling_dir must be set).",
                 ?config
-            ))
+            ));
         }
     };
 

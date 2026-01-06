@@ -5,7 +5,7 @@ description = "A sqlite VFS for asynchronous replication to S3-compatible blob s
 license = "MIT"
 repository = "https://github.com/backtrace-labs/verneuil"
 authors = ["Backtrace I/O <team@backtrace.io>"]
-edition = "2018"
+edition = "2024"
 
 [lib]
 crate-type = ["lib", "staticlib"]
@@ -26,7 +26,8 @@ crate-type = ["bin"]
 
 [features]
 vendor_sqlite = []
-dynamic_vfs = []  # Build the runtime-loadable VFS shared object; conflicts with vendor_sqlite.
+dynamic_vfs = [
+] # Build the runtime-loadable VFS shared object; conflicts with vendor_sqlite.
 
 # Consider the source db's ctime in the version id.
 #
@@ -43,17 +44,22 @@ dynamic_vfs = []  # Build the runtime-loadable VFS shared object; conflicts with
 # verneuil VFS and the regular Unix VFS on fault-prone storage.
 mix_ctime_in_version_id = []
 
-no_xattr = []  # Remove the xattr code to simulate feature-poor filesystems.
+no_xattr = [] # Remove the xattr code to simulate feature-poor filesystems.
 
-test_random_chunk_action = []  # Randomly decide what to do with base chunks
-test_vfs = ["blake2b_simd", "tracing-subscriber"]  # Build an archive for sqlite3 tests.
-test_validate_writes = ["test_vfs"]  # Validate snapshots after writes
-test_validate_reads = ["test_vfs"]  # Validate snapshots after reads as well (extra slow)
+test_random_chunk_action = [] # Randomly decide what to do with base chunks
+test_vfs = [
+  "blake2b_simd",
+  "tracing-subscriber",
+] # Build an archive for sqlite3 tests.
+test_validate_writes = ["test_vfs"] # Validate snapshots after writes
+test_validate_reads = [
+  "test_vfs",
+] # Validate snapshots after reads as well (extra slow)
 test_validate_all = ["test_validate_writes", "test_validate_reads"]
 
 [dependencies]
 attohttpc = { version = "0.18", default-features = false }
-aws-region = { version = "0.23" }  # we just want the same as rust-s3
+aws-region = { version = "0.23" }                          # we just want the same as rust-s3
 backtrace = "0.3"
 # We use blake2b to compare the actual db file and our replicated snapshot,
 # but only during tests.
@@ -64,12 +70,15 @@ chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "3", optional = true }
 crossbeam-channel = "0.5"
 derivative = "2.2.0"
-governor = { version = "0.4", default-features = false, features = ["std", "jitter"] }  # 0.4 doesn't build without "jitter"
+governor = { version = "0.4", default-features = false, features = [
+  "std",
+  "jitter",
+] } # 0.4 doesn't build without "jitter"
 itertools = "0.10"
 kismet-cache = "0.2"
 lazy_static = "1"
 libc = "0.2"
-lru = { version = "0.7", default-features = false }  # Disable hashbrown
+lru = { version = "0.7", default-features = false } # Disable hashbrown
 memmap2 = "0.5"
 percent-encoding = "2"
 prost = "0.9"
@@ -77,21 +86,32 @@ quinine = "0.2"
 rand = "0.8"
 rayon = "1.5"
 regex = "1"
-rust-s3 = { version = "0.28", default-features = false, features = ["tokio-rustls-tls", "blocking"] }
+rust-s3 = { version = "0.28", default-features = false, features = [
+  "tokio-rustls-tls",
+  "blocking",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tempfile = "3"
 tokio = { version = "1", features = ["rt", "time"], default-features = false }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", optional = true, features = ["tracing-log"] }  # Also collect log! calls.
+tracing-subscriber = { version = "0.3", optional = true, features = [
+  "tracing-log",
+] } # Also collect log! calls.
 uluru = "3"
 umash = "0.4"
 uuid = { version = "0.8", features = ["v4"] }
 zstd = "0.11"
+sqlite = { package = "libsqlite3-sys", version = "0.30", features = [
+  "bundled",
+] }
 
 [dev-dependencies]
-rusqlite = { version = "0.26" }  # For the sample rusqlite_integration.
-tracing-subscriber = { version = "0.3", features = ["env-filter", "tracing-log"] }  # Examples set up tracing.
+rusqlite = { version = "*" } # For the sample rusqlite_integration.
+tracing-subscriber = { version = "0.3", features = [
+  "env-filter",
+  "tracing-log",
+] } # Examples set up tracing.
 
 clap = { version = "3", features = ["derive"] }
 test_dir = "0.2"

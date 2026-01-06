@@ -47,7 +47,7 @@ impl LinuxFile {
 }
 
 // See vfs.h
-extern "C" {
+unsafe extern "C" {
     fn verneuil__file_close_impl(file: &mut LinuxFile) -> i32;
     fn verneuil__file_read_impl(file: &LinuxFile, buf: *mut c_void, n: i32, off: i64) -> i32;
     fn verneuil__file_write_impl(file: &LinuxFile, buf: *const c_void, n: i32, off: i64) -> i32;
@@ -58,7 +58,7 @@ extern "C" {
     fn verneuil__file_unlock_impl(file: &mut LinuxFile, level: LockLevel) -> i32;
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_post_open(file: &mut LinuxFile) -> SqliteCode {
     // If the file doesn't have a name, or the fd is invalid, we can't
     // track it.  Assume that's by design, and let the caller handle
@@ -77,7 +77,7 @@ extern "C" fn verneuil__file_post_open(file: &mut LinuxFile) -> SqliteCode {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_flush_replication_data(file: &mut LinuxFile) -> i32 {
     let tracker = if let Some(tracker) = file.tracker() {
         tracker
@@ -94,7 +94,7 @@ extern "C" fn verneuil__file_flush_replication_data(file: &mut LinuxFile) -> i32
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_close(file: &mut LinuxFile) -> i32 {
     let tracker = file.consume_tracker();
 
@@ -109,7 +109,7 @@ extern "C" fn verneuil__file_close(file: &mut LinuxFile) -> i32 {
     unsafe { verneuil__file_close_impl(file) }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_read(
     file: &mut LinuxFile,
     dst: *mut c_void,
@@ -128,7 +128,7 @@ extern "C" fn verneuil__file_read(
     unsafe { verneuil__file_read_impl(file, dst, n, offset) }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_write(
     file: &mut LinuxFile,
     src: *const c_void,
@@ -165,7 +165,7 @@ extern "C" fn verneuil__file_write(
     unsafe { verneuil__file_write_impl(file, src, n, offset) }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_truncate(file: &LinuxFile, size: i64) -> i32 {
     // We can mostly assume truncations are page-aligned, except some
     // sqlite tests likes to do fun stuff.
@@ -189,7 +189,7 @@ extern "C" fn verneuil__file_truncate(file: &LinuxFile, size: i64) -> i32 {
     unsafe { verneuil__file_truncate_impl(file, size) }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_sync(file: &mut LinuxFile, flags: i32) -> i32 {
     // If there's something to sync, there was a write.
     if let Some(tracker) = file.tracker() {
@@ -199,12 +199,12 @@ extern "C" fn verneuil__file_sync(file: &mut LinuxFile, flags: i32) -> i32 {
     unsafe { verneuil__file_sync_impl(file, flags) }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_size(file: &LinuxFile, size: &mut i64) -> i32 {
     unsafe { verneuil__file_size_impl(file, size) }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_lock(file: &mut LinuxFile, level: LockLevel) -> i32 {
     if level <= file.lock_level {
         return 0;
@@ -230,7 +230,7 @@ extern "C" fn verneuil__file_lock(file: &mut LinuxFile, level: LockLevel) -> i32
     ret
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__file_unlock(file: &mut LinuxFile, level: LockLevel) -> i32 {
     if level >= file.lock_level {
         return 0;

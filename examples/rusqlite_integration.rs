@@ -70,11 +70,11 @@ fn main() {
 
     let mut conn = if options.make_default {
         println!("Opening /tmp/foo.db with verneuil default VFS");
-        rusqlite::Connection::open("/tmp/foo.db").unwrap()
+        rusqlite::Connection::open("/private/tmp/foo.db").unwrap()
     } else {
         println!("Opening /tmp/foo.db with explicit verneuil VFS");
         let conn = rusqlite::Connection::open_with_flags_and_vfs(
-            "/tmp/foo.db",
+            "/private/tmp/foo.db",
             rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE | rusqlite::OpenFlags::SQLITE_OPEN_CREATE,
             "verneuil",
         )
@@ -112,7 +112,7 @@ fn main() {
     let replica = rusqlite::Connection::open_with_flags_and_vfs(
         // Open the replica for a file on the current machine, at
         // `/tmp/foo.db`.
-        "verneuil:///tmp/foo.db",
+        "verneuil:///private/tmp/foo.db",
         rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
         "verneuil_snapshot",
     )

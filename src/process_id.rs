@@ -82,7 +82,7 @@ pub(crate) fn process_id() -> String {
             Some(value) => value as u32,
             // Otherwise, generate a random value (it'll be cached for
             // the lifetime of the current process).
-            None => rand::thread_rng().gen::<u32>(),
+            None => rand::thread_rng().r#gen::<u32>(),
         };
 
         // We can't assume our write won.  Get the actual resulting

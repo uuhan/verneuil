@@ -18,7 +18,7 @@ impl Drop for OfdLock {
     fn drop(&mut self) {
         use std::os::unix::io::AsRawFd;
 
-        extern "C" {
+        unsafe extern "C" {
             fn verneuil__ofd_lock_release(fd: i32) -> i32;
         }
 
@@ -39,7 +39,7 @@ impl OfdLock {
         use std::os::unix::fs::OpenOptionsExt;
         use std::os::unix::io::AsRawFd;
 
-        extern "C" {
+        unsafe extern "C" {
             fn verneuil__ofd_lock_exclusive(fd: i32) -> i32;
         }
 

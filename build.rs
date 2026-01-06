@@ -61,6 +61,9 @@ fn main() {
         build_sqlite();
     }
 
+    // from libsqlite3-sys
+    let dep_includes = std::env::var("DEP_SQLITE3_INCLUDE").expect("sqlite3 include");
+
     println!("cargo:rerun-if-changed=c/file_ops.c");
     println!("cargo:rerun-if-changed=c/file_ops.h");
     println!("cargo:rerun-if-changed=c/vfs.c");
@@ -72,6 +75,7 @@ fn main() {
         .flag_if_supported("-Wmissing-prototypes")
         .flag_if_supported("-Wstrict-prototypes")
         .flag_if_supported("-Wundef")
+        .include(&dep_includes)
         .include("include");
 
     if cfg!(feature = "test_vfs") {

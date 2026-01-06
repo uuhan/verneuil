@@ -72,7 +72,7 @@ pub struct ForeignOptions {
 }
 
 // See `c/vfs.h`.
-extern "C" {
+unsafe extern "C" {
     fn verneuil_configure_impl(options: *const ForeignOptions) -> i32;
     #[cfg(feature = "test_vfs")]
     fn verneuil_test_only_register() -> i32;
@@ -192,8 +192,8 @@ pub fn configure(options: Options) -> std::result::Result<(), i32> {
 /// # Safety
 ///
 /// Assumes the `options_ptr` is NULL or valid.
-#[no_mangle]
-pub unsafe extern "C" fn verneuil_configure(options_ptr: *const ForeignOptions) -> i32 {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn verneuil_configure(options_ptr: *const ForeignOptions) -> i32 { unsafe {
     let mut options: Options;
 
     fn cstr_to_string(ptr: *const c_char) -> Option<String> {
@@ -241,7 +241,7 @@ pub unsafe extern "C" fn verneuil_configure(options_ptr: *const ForeignOptions) 
         Ok(()) => 0,
         Err(code) => code,
     }
-}
+}}
 
 /// This test-only registration callback is invoked by the sqlite test
 /// suite, and overrides the default and the Unix VFSes with the
@@ -252,7 +252,7 @@ pub unsafe extern "C" fn verneuil_configure(options_ptr: *const ForeignOptions) 
 ///
 /// This function must only be called in `-DSQLITE_CORE` builds, and is
 /// only expected to be invoked by sqlite's test harness.
-#[no_mangle]
+#[unsafe(no_mangle)]
 #[cfg(feature = "test_vfs")]
 pub unsafe extern "C" fn sqlite3_verneuil_test_only_register(_: *const c_char) -> i32 {
     // Send tracing calls to stdout, and converts any log! call to
@@ -360,7 +360,7 @@ pub fn current_replication_proto_for_db(
                     e,
                     "failed to read tapped manifest file",
                     ?manifest_path
-                ))
+                ));
             }
             Ok(bytes) => bytes,
         };
@@ -470,7 +470,7 @@ pub fn manifest_bytes_for_path(config: Option<&Options>, path: &str) -> Result<O
             None => {
                 return Err(fresh_error!(
                     "failed to parse S3 URI; should be s3://bucket-name.region[.endpoint]/path-to-blob",
-                    %path))
+                    %path));
             }
         };
 
@@ -479,7 +479,7 @@ pub fn manifest_bytes_for_path(config: Option<&Options>, path: &str) -> Result<O
             None => {
                 return Err(fresh_error!(
                     "failed to parse S3 URI; should be s3://bucket-name.region[.endpoint]/path-to-blob",
-                    %path))
+                    %path));
             }
         };
 
@@ -499,7 +499,7 @@ pub fn manifest_bytes_for_path(config: Option<&Options>, path: &str) -> Result<O
             None => {
                 return Err(fresh_error!(
                 "failed to parse verneuil URI; should be verneuil://machine-hostname/path/to/sqlite.db",
-                %path))
+                %path));
             }
         };
 
@@ -626,12 +626,12 @@ fn populate_replication_info(
 /// # Safety
 ///
 /// This function assumes its arguments are valid pointers.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn verneuil_replication_info_for_db(
     dst_ptr: *mut ForeignReplicationInfo,
     c_db: *const c_char,
     c_prefix: *const c_char,
-) -> i32 {
+) -> i32 { unsafe {
     use std::ffi::OsStr;
     use std::os::unix::ffi::OsStrExt;
 
@@ -668,7 +668,7 @@ pub unsafe extern "C" fn verneuil_replication_info_for_db(
 
     populate_replication_info(dst, blob_name, info_or);
     0
-}
+}}
 
 /// Populates `dst_ptr` with the replication information for
 /// manifest `manifest_name` in our remote replication targets.
@@ -676,11 +676,11 @@ pub unsafe extern "C" fn verneuil_replication_info_for_db(
 /// # Safety
 ///
 /// This function assumes its arguments are valid pointers.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn verneuil_replication_info_for_manifest(
     dst_ptr: *mut ForeignReplicationInfo,
     c_manifest_name: *const c_char,
-) -> i32 {
+) -> i32 { unsafe {
     if dst_ptr.is_null() {
         tracing::error!("invalid dst (null)");
         return -1;
@@ -728,15 +728,15 @@ pub unsafe extern "C" fn verneuil_replication_info_for_manifest(
 
     populate_replication_info(dst, manifest_name, info_or);
     0
-}
+}}
 
 /// Releases resources owned by `info_ptr`
 ///
 /// # Safety
 ///
 /// This function assumes its argument is a valid pointer or NULL.
-#[no_mangle]
-pub unsafe extern "C" fn verneuil_replication_info_deinit(info_ptr: *mut ForeignReplicationInfo) {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn verneuil_replication_info_deinit(info_ptr: *mut ForeignReplicationInfo) { unsafe {
     if let Some(info) = info_ptr.as_mut() {
         if !info.blob_name.is_null() {
             std::mem::drop(CString::from_raw(info.blob_name));
@@ -749,7 +749,7 @@ pub unsafe extern "C" fn verneuil_replication_info_deinit(info_ptr: *mut Foreign
 
         *info = std::mem::zeroed();
     }
-}
+}}
 
 /// Returns the name of the manifest blob for `c_hostname` and `c_path`, as a C string.
 ///
@@ -757,11 +757,11 @@ pub unsafe extern "C" fn verneuil_replication_info_deinit(info_ptr: *mut Foreign
 ///
 /// Assumes that `c_hostname` is NULL or a valid C string, and that
 /// `c_path` is a valid C string.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn verneuil_manifest_name_for_hostname_path(
     c_hostname: *const c_char,
     c_path: *const c_char,
-) -> *mut c_char {
+) -> *mut c_char { unsafe {
     use std::ffi::OsStr;
     use std::os::unix::ffi::OsStrExt;
     use std::path::PathBuf;
@@ -797,7 +797,7 @@ pub unsafe extern "C" fn verneuil_manifest_name_for_hostname_path(
             std::ptr::null_mut()
         }
     }
-}
+}}
 
 /// Releases the `CStr` that backs `name` if non-NULL.
 ///
@@ -806,7 +806,7 @@ pub unsafe extern "C" fn verneuil_manifest_name_for_hostname_path(
 /// This function assumes that `name` is NULL, or was returned by
 /// `verneuil_manifest_name_for_hostname_path` and not destroyed
 /// since.
-#[no_mangle]
-pub unsafe extern "C" fn verneuil_manifest_name_destroy(name: *mut c_char) {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn verneuil_manifest_name_destroy(name: *mut c_char) { unsafe {
     std::mem::drop(CString::from_raw(name));
-}
+}}

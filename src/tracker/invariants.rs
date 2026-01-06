@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use crate::chain_error;
 use crate::loader::Chunk;
-use crate::manifest_schema::fingerprint_sqlite_header;
 use crate::manifest_schema::Manifest;
+use crate::manifest_schema::fingerprint_sqlite_header;
 use crate::result::Result;
 
 use super::Tracker;

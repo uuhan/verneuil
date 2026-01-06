@@ -1,8 +1,8 @@
 //! This module implements the snapshot generation logic
 //! (`Tracker::snapshot_file_contents`) of `Tracker`s.
 use std::os::unix::fs::FileExt;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use tracing::instrument;
 use umash::Fingerprint;
 
@@ -11,24 +11,24 @@ use crate::chain_info;
 use crate::chain_warn;
 use crate::drop_result;
 use crate::fresh_warn;
-use crate::loader::is_well_known_fingerprint;
 use crate::loader::Chunk;
+use crate::loader::is_well_known_fingerprint;
+use crate::manifest_schema::BundledChunk;
+use crate::manifest_schema::Manifest;
+use crate::manifest_schema::ManifestV1;
 use crate::manifest_schema::clear_version_id;
 use crate::manifest_schema::extract_version_id;
 use crate::manifest_schema::fingerprint_file_chunk;
 use crate::manifest_schema::fingerprint_sqlite_header;
 use crate::manifest_schema::fingerprint_v1_chunk_list;
 use crate::manifest_schema::update_version_id;
-use crate::manifest_schema::BundledChunk;
-use crate::manifest_schema::Manifest;
-use crate::manifest_schema::ManifestV1;
 use crate::replication_buffer::ReplicationBuffer;
 use crate::result::Result;
 
-use super::MutationState;
-use super::Tracker;
 use super::BASE_CHUNK_MIN_LENGTH;
+use super::MutationState;
 use super::SNAPSHOT_GRANULARITY;
+use super::Tracker;
 
 /// What should we do with the current base chunk fingerprint list?
 enum BaseChunkAction {

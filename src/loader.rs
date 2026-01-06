@@ -21,10 +21,10 @@ use crate::executor::block_on_with_executor;
 use crate::fresh_error;
 use crate::manifest_schema::fingerprint_file_chunk;
 use crate::manifest_schema::hash_file_chunk;
-use crate::replication_target::apply_cache_replication_targets;
-use crate::replication_target::parse_s3_region_specification;
 use crate::replication_target::ReplicationTarget;
 use crate::replication_target::S3ReplicationTarget;
+use crate::replication_target::apply_cache_replication_targets;
+use crate::replication_target::parse_s3_region_specification;
 use crate::result::Result;
 use crate::unzstd::try_to_unzstd;
 
@@ -655,7 +655,7 @@ fn load_from_source_impl(source: &Bucket, name: &str) -> Result<Option<Vec<u8>>>
             Ok((body, code)) if code < 500 && ![404, 429].contains(&code) => {
                 return Err(
                     chain_error!((body, code), "failed to fetch chunk", %source.name, %name),
-                )
+                );
             }
             err => {
                 if i == LOAD_RETRY_LIMIT {

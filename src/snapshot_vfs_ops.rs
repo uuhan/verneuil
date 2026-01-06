@@ -3,21 +3,21 @@ use std::boxed::Box;
 use std::collections::HashMap;
 use std::ffi::c_void;
 use std::os::raw::c_char;
-use std::sync::atomic::AtomicBool;
-use std::sync::atomic::AtomicPtr;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::Weak;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
 use std::time::SystemTime;
 
+use crate::Result;
+use crate::Snapshot;
+use crate::SnapshotLoadingPolicy;
 use crate::chain_error;
 use crate::fresh_error;
 use crate::sqlite_code::SqliteCode;
 use crate::sqlite_lock_level::LockLevel;
-use crate::Result;
-use crate::Snapshot;
-use crate::SnapshotLoadingPolicy;
 
 /// Number of background refresh workers.
 const REFRESH_POOL_SIZE: usize = 4;
@@ -217,7 +217,7 @@ fn async_update(data: Arc<Data>) {
     });
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_open(file: &mut SnapshotFile, path: *const c_char) -> SqliteCode {
     #[tracing::instrument]
     fn open(file: &mut SnapshotFile, c_path: *const c_char) -> Result<()> {
@@ -239,13 +239,13 @@ extern "C" fn verneuil__snapshot_open(file: &mut SnapshotFile, path: *const c_ch
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_close(file: &mut SnapshotFile) -> SqliteCode {
     std::mem::drop(file.consume_snapshot());
     SqliteCode::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_read(
     file: &SnapshotFile,
     dst: *mut u8,
@@ -268,7 +268,7 @@ extern "C" fn verneuil__snapshot_read(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_write(
     _file: &SnapshotFile,
     _src: *const u8,
@@ -278,17 +278,17 @@ extern "C" fn verneuil__snapshot_write(
     SqliteCode::ReadOnly
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_truncate(_file: &SnapshotFile, _size: i64) -> SqliteCode {
     SqliteCode::ReadOnly
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_sync(_file: &SnapshotFile, _flags: i32) -> SqliteCode {
     SqliteCode::ReadOnly
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_size(file: &SnapshotFile, out_size: &mut i64) -> SqliteCode {
     match file.size() {
         Ok(size) => {
@@ -302,7 +302,7 @@ extern "C" fn verneuil__snapshot_size(file: &SnapshotFile, out_size: &mut i64) -
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_lock(file: &SnapshotFile, level: LockLevel) -> SqliteCode {
     if level > LockLevel::Shared {
         // We can't take a write lock on a snapshot: we can't write to
@@ -327,7 +327,7 @@ extern "C" fn verneuil__snapshot_lock(file: &SnapshotFile, level: LockLevel) -> 
     SqliteCode::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_unlock(file: &SnapshotFile, level: LockLevel) -> SqliteCode {
     if level == LockLevel::None {
         file.locked.store(false, Ordering::Relaxed);
@@ -342,7 +342,7 @@ extern "C" fn verneuil__snapshot_unlock(file: &SnapshotFile, level: LockLevel) -
 /// Force == 1: fetch a new snapshot, unless there's already an update in flight,
 ///             in which case use the latest available one.
 /// Force >= 2: fetch a new snapshot
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_refresh(
     file: &SnapshotFile,
     update_ts: &mut Timestamp,
@@ -401,7 +401,7 @@ extern "C" fn verneuil__snapshot_refresh(
 ///
 /// Returns whether we found fresh data without having to trigger an
 /// async reload.
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_async_reload(file: &SnapshotFile) -> bool {
     let data = match file.snapshot() {
         Some(data) => data,
@@ -426,7 +426,7 @@ extern "C" fn verneuil__snapshot_async_reload(file: &SnapshotFile) -> bool {
 
 /// Returns the `ctime` for the file's current snapshot data,
 /// and stores the fractional nanosecond part in `ns`.
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_ctime(file: &SnapshotFile) -> Timestamp {
     file.snapshot()
         .map(|data| Timestamp {
@@ -437,7 +437,7 @@ extern "C" fn verneuil__snapshot_ctime(file: &SnapshotFile) -> Timestamp {
 }
 
 /// Returns the `updated` time for the file's current snapshot.
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_updated(file: &SnapshotFile) -> Timestamp {
     file.snapshot()
         .map(|data| data.updated.into())
@@ -447,7 +447,7 @@ extern "C" fn verneuil__snapshot_updated(file: &SnapshotFile) -> Timestamp {
 /// Overrides the `auto_refresh` (before read lock) flag on `file`.
 ///
 /// Returns the old value.
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn verneuil__snapshot_auto_refresh(file: &SnapshotFile, update: bool) -> bool {
     file.auto_refresh.swap(update, Ordering::Relaxed)
 }

@@ -79,7 +79,7 @@ pub fn __extract_cause_info<T: std::any::Any>(
 /// drops the result.
 #[macro_export]
 macro_rules! drop_result {
-    ($value:expr, $($($pattern:pat)|+ $(if $guard:expr)? => $handler:expr),+) => {
+    ($value:expr, $($($pattern:pat_param)|+ $(if $guard:expr)? => $handler:expr),+) => {
         if let Err(name) = $value {
             match name {
                 $($($pattern)|+ $(if $guard)? => { let _ = $handler; }),+
@@ -219,7 +219,7 @@ macro_rules! trace_from_os {
 /// the pattern, the level is `benign_level`, otherwise it's `ERROR`.
 #[macro_export]
 macro_rules! filtered_io_error {
-    ($error:expr, $($benign_kind:pat)|+ $(if $guard:expr)? => $benign_level:expr, $($message_and_fields:tt)+) => {{
+    ($error:expr, $($benign_kind:pat_param)|+ $(if $guard:expr)? => $benign_level:expr, $($message_and_fields:tt)+) => {{
         let err = $error;
         match err.kind() {
             $($benign_kind)|+ $(if $guard)? => $crate::chain!(err, $benign_level, $($message_and_fields)+),

@@ -373,7 +373,7 @@ impl Snapshot {
     /// `std::io::Read` for the snapshot's contents at bytes
     /// `[initial_offset, min(initial_offset + len, self.len()))`.
     #[inline]
-    pub fn as_read(&self, initial_offset: u64, len: u64) -> Result<SnapshotReader> {
+    pub fn as_read(&self, initial_offset: u64, len: u64) -> Result<SnapshotReader<'_>> {
         // Fast path empty ranges.
         if initial_offset >= self.len() || len == 0 {
             return Ok(SnapshotReader {
@@ -463,11 +463,7 @@ impl<'a> std::io::Read for SnapshotReader<'a> {
                     *end,
                     self.end_byte_offset,
                 );
-                if bytes.is_empty() {
-                    None
-                } else {
-                    Some(bytes)
-                }
+                if bytes.is_empty() { None } else { Some(bytes) }
             });
         }
 

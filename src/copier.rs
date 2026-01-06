@@ -12,12 +12,12 @@ use std::future::Future;
 use std::io::ErrorKind;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicU64;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
-use std::sync::Arc;
-use std::sync::Mutex;
 use std::time::Duration;
 
 use crossbeam_channel::Receiver;
@@ -25,9 +25,9 @@ use crossbeam_channel::Sender;
 use kismet_cache::Cache;
 use s3::bucket::Bucket;
 use s3::creds::Credentials;
+use tracing::Level;
 use tracing::info_span;
 use tracing::instrument;
-use tracing::Level;
 
 use crate::chain_debug;
 use crate::chain_error;
@@ -47,11 +47,11 @@ use crate::racy_time::RacySystemTime;
 use crate::recent_work_set::RecentWorkSet;
 use crate::recent_work_set::WorkUnit;
 use crate::replication_buffer;
-use crate::replication_target::apply_local_cache_replication_target;
-use crate::replication_target::parse_s3_region_specification;
 use crate::replication_target::ReplicationTarget;
 use crate::replication_target::ReplicationTargetList;
 use crate::replication_target::S3ReplicationTarget;
+use crate::replication_target::apply_local_cache_replication_target;
+use crate::replication_target::parse_s3_region_specification;
 use crate::result::Result;
 
 const CHUNK_CONTENT_TYPE: &str = "application/octet-stream";
@@ -1818,8 +1818,8 @@ impl CopierWorker {
         recent_base_chunk: Arc<Mutex<Option<Arc<crate::loader::Chunk>>>>,
         time_since_last_patrol: Duration,
     ) -> Result<()> {
-        use rand::seq::SliceRandom;
         use rand::Rng;
+        use rand::seq::SliceRandom;
 
         // Stop touching the dependencies once the source file has
         // been deleted.
@@ -2405,8 +2405,8 @@ impl CopierBackend {
     /// When the write ends of the channel are all gone, stop pulling
     /// work.
     fn handle_requests(&mut self) {
-        use rand::seq::SliceRandom;
         use rand::Rng;
+        use rand::seq::SliceRandom;
 
         fn shuffle_active_set(
             active: &HashMap<Arc<PathBuf>, Arc<CopierSpoolState>>,

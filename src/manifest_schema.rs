@@ -383,7 +383,7 @@ pub(crate) fn extract_version_id(
 ) -> Vec<u8> {
     use std::os::unix::io::AsRawFd;
 
-    extern "C" {
+    unsafe extern "C" {
         fn verneuil__getxattr(fd: i32, name: *const i8, buf: *mut u8, bufsz: usize) -> isize;
     }
 
@@ -420,11 +420,7 @@ pub(crate) fn extract_version_id(
             const MAX_AGE: Duration = Duration::from_secs(2);
 
             let age = file.metadata().ok()?.created().ok()?.elapsed().ok()?;
-            if age < MAX_AGE {
-                Some(age)
-            } else {
-                None
-            }
+            if age < MAX_AGE { Some(age) } else { None }
         }
 
         let error = std::io::Error::last_os_error();
@@ -499,7 +495,7 @@ pub(crate) fn update_version_id(file: &File, cached_uuid: Option<Uuid>) -> Resul
     use std::os::unix::io::AsRawFd;
     use uuid::adapter::Hyphenated;
 
-    extern "C" {
+    unsafe extern "C" {
         fn verneuil__setxattr(fd: i32, name: *const i8, buf: *const u8, bufsz: usize) -> isize;
     }
 
@@ -541,7 +537,7 @@ pub(crate) fn update_version_id(file: &File, cached_uuid: Option<Uuid>) -> Resul
 pub(crate) fn clear_version_id(file: &File) -> Result<()> {
     use std::os::unix::io::AsRawFd;
 
-    extern "C" {
+    unsafe extern "C" {
         fn verneuil__setxattr(fd: i32, name: *const i8, buf: *const u8, bufsz: usize) -> isize;
         fn verneuil__touch(fd: i32) -> i32;
     }
@@ -835,7 +831,7 @@ fn test_xattr() {
     use test_dir::{DirBuilder, FileType, TestDir};
     use uuid::adapter::Hyphenated;
 
-    extern "C" {
+    unsafe extern "C" {
         fn verneuil__getxattr(fd: i32, name: *const i8, buf: *mut u8, bufsz: usize) -> isize;
         fn verneuil__setxattr(fd: i32, name: *const i8, buf: *const u8, bufsz: usize) -> isize;
     }

@@ -151,8 +151,8 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::time::Duration;
 use tempfile::TempDir;
-use tracing::instrument;
 use tracing::Level;
+use tracing::instrument;
 use umash::Fingerprint;
 
 use crate::chain_error;
@@ -316,7 +316,7 @@ fn pseudo_unique_filename() -> String {
         Err(_) => 0,
     };
     let seq = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let random = rand::thread_rng().gen::<u128>();
+    let random = rand::thread_rng().r#gen::<u128>();
 
     format!("{}.{}.{}.{:x}", pid, timestamp, seq, random)
 }
@@ -365,7 +365,7 @@ pub(crate) fn tapped_manifest_path_in_spool_prefix(
             return Err(fresh_error!(
                 "no spool_prefix provided or defaulted",
                 ?source_db
-            ))
+            ));
         }
     };
 
@@ -602,7 +602,9 @@ fn delete_stale_directories(goal_path: &Path) -> Result<()> {
         Ok(it) => it,
         Err(e) if e.kind() == ErrorKind::NotFound => return Ok(()),
         Err(e) => {
-            return Err(chain_info!(e, "failed to list parent directory", path=?goal_path, ?parent))
+            return Err(
+                chain_info!(e, "failed to list parent directory", path=?goal_path, ?parent),
+            );
         }
     };
 
@@ -703,7 +705,7 @@ fn delete_orphan_tapped_manifest_files(spooling: PathBuf) -> Result<()> {
         None => {
             return Err(fresh_error!(
             "unexpected pattern in local manifest name",
-            %local_name))
+            %local_name));
         }
     };
 

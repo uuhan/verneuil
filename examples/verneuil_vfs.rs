@@ -1,17 +1,17 @@
 //! The Verneuil extension can be loaded by sqlite at runtime to
 //! enable the Verneuil replicating VFS.  The VFS looks for its
 //! configuration JSON in the `VERNEUIL_CONFIG` environment variable.
-use std::ffi::c_void;
 use std::ffi::CString;
+use std::ffi::c_void;
 use std::os::raw::c_char;
 
+use verneuil::VERNEUIL_CONFIG_ENV_VAR;
 use verneuil::chain_error;
 use verneuil::drop_result;
 use verneuil::fresh_warn;
-use verneuil::VERNEUIL_CONFIG_ENV_VAR;
 
 // See `c/vfs.h`.
-extern "C" {
+unsafe extern "C" {
     fn verneuil_init_impl(
         db: *mut c_void,
         errmsg: *mut *mut c_char,
@@ -30,7 +30,7 @@ extern "C" {
 /// The arguments must be valid, as defined by sqlite.  This function
 /// should only be called by sqlite, which is aware of its own
 /// preconditions.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn sqlite3_verneuilvfs_init(
     db: *mut c_void,
     err_msg: *mut *mut c_char,
@@ -78,5 +78,5 @@ pub unsafe extern "C" fn sqlite3_verneuilvfs_init(
         }
     }
 
-    verneuil_init_impl(db, err_msg, api, c_path_ptr, make_default)
+    unsafe { verneuil_init_impl(db, err_msg, api, c_path_ptr, make_default) }
 }

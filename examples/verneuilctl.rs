@@ -268,7 +268,7 @@ struct Sync {
 }
 
 fn sync(cmd: Sync, config: Options) -> Result<()> {
-    extern "C" {
+    unsafe extern "C" {
         fn verneuil__cycle_db(path: *const std::os::raw::c_char, vacuum: bool) -> i32;
     }
 

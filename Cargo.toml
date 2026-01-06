@@ -18,14 +18,12 @@ required-features = ["dynamic_vfs"]
 [[example]]
 name = "verneuilctl"
 crate-type = ["bin"]
-required-features = ["vendor_sqlite"]
 
 [[example]]
 name = "rusqlite_integration"
 crate-type = ["bin"]
 
 [features]
-vendor_sqlite = []
 dynamic_vfs = [
 ] # Build the runtime-loadable VFS shared object; conflicts with vendor_sqlite.
 
